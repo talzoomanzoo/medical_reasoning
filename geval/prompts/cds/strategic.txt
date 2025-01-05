@@ -1,0 +1,28 @@
+[Task Description]
+You will be given INPUT and INITIAL RESPONSE.
+You task is to evaluate INITIAL RESPONSE based on the criterion.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
+
+[Criterion]
+Decision Acumen (Yes / No): How effectively does the INITIAL RESPONSE make concise and precise decisions through careful deliberation, clearly distinguishing between positive and negative answers, and appropriately rejecting hard negatives when necessary?
+The initial response should demonstrate strong decision-making skills by evaluating the available information thoroughly, weighing evidence, and arriving at a precise conclusion. It should confidently reject incorrect or irrelevant options while clearly supporting its decisions with reasoning grounded in the INPUT.
+
+For your information:
+No indicates that the INITIAL RESPONSE demonstrates poor decision-making, with imprecise conclusions, weak distinctions between valid and invalid options, or a failure to reject incorrect or irrelevant information. Such a response lacks clarity and fails to exhibit thoughtful deliberation.
+Yes signifies that the INITIAL RESPONSE exhibits exceptional decision acumen, making concise and precise distinctions based on thorough evaluation. The response decisively identifies the correct conclusions, explicitly rejects hard negatives with clear justification, and maintains a logical and deliberate approach. It demonstrates a high level of confidence and precision in its decision-making process, well-aligned with the INPUT.
+
+[Evaluation Steps]
+1. Read INPUT and INITIAL RESPONSE carefully.
+2. Output INITIAL RESPONSE as either Yes or No according to the criterion above.
+3. Provide a brief explanation for your rating.
+4. ALWAYS provide the Decision Acumen decision as either ```Yes``` or ```No``` after the word PREDICTION, wrapped in triple backticks, like this: ```PREDICTION```Yes``` or ```PREDICTION```No```.
+
+[Your Task]
+INPUT:
+{input}
+
+INITIAL RESPONSE:
+{initial_response}
+
+[OUTPUT]
+PREDICTION:

@@ -1,0 +1,10 @@
+__pycache__
+.mypy_cache
+.pyre
+
+.env
+.cache
+models.json
+queues
+results
+*.ipynb

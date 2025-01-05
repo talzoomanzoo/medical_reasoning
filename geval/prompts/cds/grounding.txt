@@ -1,0 +1,29 @@
+[Task Description]
+You will be given INPUT and INITIAL RESPONSE.
+You task is to evaluate INITIAL RESPONSE based on the criterion.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
+
+
+[Criterion]
+Contextual Accuracy (Yes / No): How accurately and appropriately does the INITIAL RESPONSE align with the specific context provided, such as patient details and medical information?
+The initial response should reflect a deep understanding of the context, ensuring that all medical information, reasoning, and conclusions are tailored and relevant to the specific details and nuances of the INPUT.
+
+For your information:
+No indicates that the INITIAL RESPONSE fails to accurately address the context, either by overlooking critical details, misinterpreting the provided information, or delivering generic or irrelevant content. Such a response demonstrates poor alignment with the given patient or medical situation.
+Yes signifies that the INITIAL RESPONSE is exceptionally contextually accurate, providing precise and tailored insights that align perfectly with the given details. The response incorporates all relevant aspects of the INPUT, demonstrating a nuanced understanding of the context and ensuring that the information and reasoning are directly applicable and highly relevant to the situation described.
+
+[Evaluation Steps]
+1. Read INPUT and INITIAL RESPONSE carefully.
+2. Output INITIAL RESPONSE as either Yes or No according to the criterion above.
+3. Provide a brief explanation for your rating.
+4. ALWAYS provide the Contextual Accuracy decision as either ```Yes``` or ```No``` after the word PREDICTION, wrapped in triple backticks, like this: ```PREDICTION```Yes``` or ```PREDICTION```No```.
+
+[Your Task]
+INPUT:
+{input}
+
+INITIAL RESPONSE:
+{initial_response}
+
+[OUTPUT]
+PREDICTION:

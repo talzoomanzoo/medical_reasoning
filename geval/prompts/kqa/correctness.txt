@@ -1,0 +1,29 @@
+[Task Description]
+You will be given INPUT and INITIAL RESPONSE.
+You task is to evaluate INITIAL RESPONSE based on the criterion.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
+
+
+[Criterion]
+Knowledge Correctness (Yes / No): How accurate and reliable is the INITIAL RESPONSE in terms of the factual information it provides?
+The initial response should demonstrate a high level of medical knowledge, free from significant inaccuracies, and align with established medical guidelines or evidence-based practices. The response should also use correct terminology and avoid misleading or unsupported claims based on the INPUT.
+
+For your information:
+No indicates that the majority of the content in the INITIAL RESPONSE contains significant factual inaccuracies or unsupported claims, failing to provide reliable medical knowledge. Such a response may include incorrect terminology, misinterpret established medical guidelines, or present information that is misleading or irrelevant to the INPUT.
+Yes signifies that the INITIAL RESPONSE is exceptionally accurate and reliable, demonstrating a deep understanding of medical knowledge. The response is free from factual errors, uses correct terminology, and adheres to evidence-based medical practices. All claims are well-supported and relevant to the INPUT, ensuring trustworthiness and precision in the conveyed information.
+
+[Evaluation Steps]
+1. Read INPUT and INITIAL RESPONSE carefully.
+2. Output INITIAL RESPONSE as either Yes or No according to the criterion above.
+3. Provide a brief explanation for your rating.
+4. ALWAYS provide the Correctness decision as either ```Yes``` or ```No``` after the word PREDICTION, wrapped in triple backticks, like this: ```PREDICTION```Yes``` or ```PREDICTION```No```.
+
+[Your Task]
+INPUT:
+{input}
+
+INITIAL RESPONSE:
+{initial_response}
+
+[OUTPUT]
+PREDICTION:

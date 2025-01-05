@@ -1,0 +1,29 @@
+[Task Description]
+You will be given INPUT and INITIAL RESPONSE.
+You task is to evaluate INITIAL RESPONSE based on the criterion.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
+
+
+[Criterion]
+Explainability (Yes / No): How clear, informative, and persuasive is the INITIAL RESPONSE to medical experts receiving it?
+The initial response should communicate complex medical information in a way that is easily understandable, well-structured, and compelling for its intended audience. It should present reasoning and conclusions transparently, providing sufficient context and justification for each claim or step in the reasoning process.
+
+For your information:
+No indicates that the INITIAL RESPONSE lacks clarity and fails to provide adequate explanations for its claims or reasoning. Such a response may be vague, overly simplistic, or confusing, making it difficult for medical experts to follow or trust the information presented.
+Yes signifies that the INITIAL RESPONSE is highly explainable, delivering medical information and reasoning with exceptional clarity and precision. The response thoroughly justifies its conclusions, providing well-articulated explanations that are persuasive, logically sound, and directly relevant to the INPUT. It ensures that even complex concepts are conveyed in an accessible and professional manner suitable for a medical expert audience.
+
+[Evaluation Steps]
+1. Read INPUT and INITIAL RESPONSE carefully.
+2. Output INITIAL RESPONSE as either Yes or No according to the criterion above.
+3. Provide a brief explanation for your rating.
+4. ALWAYS provide the Explainability decision as either ```Yes``` or ```No``` after the word PREDICTION, wrapped in triple backticks, like this: ```PREDICTION```Yes``` or ```PREDICTION```No```.
+
+[Your Task]
+INPUT:
+{input}
+
+INITIAL RESPONSE:
+{initial_response}
+
+[OUTPUT]
+PREDICTION:

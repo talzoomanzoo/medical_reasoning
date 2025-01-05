@@ -1,0 +1,29 @@
+[Task Description]
+You will be given INPUT and INITIAL RESPONSE.
+You task is to evaluate INITIAL RESPONSE based on the criterion.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
+
+
+[Criterion]
+Consistency (Yes / No): How coherent and logically consistent is the INITIAL RESPONSE in its reasoning, without gaps in logic or reliance on reasoning shortcuts?
+The initial response should maintain a clear and coherent flow of thought, avoiding contradictions or leaps in logic. It should address all relevant aspects of the INPUT thoroughly, ensuring the reasoning is complete, well-structured, and methodical.
+
+For your information:
+No indicates that the INITIAL RESPONSE lacks coherence and contains significant gaps in reasoning. Such a response might skip important logical steps, rely on unsupported assumptions, or exhibit contradictions that undermine its overall validity.
+Yes signifies that the INITIAL RESPONSE is highly consistent and well-reasoned, with a seamless and logical progression of thought. Every aspect of the INPUT is addressed in a systematic and thorough manner, with no significant gaps, contradictions, or oversimplifications in the reasoning. The response demonstrates a deep and methodical approach to analyzing the problem.
+
+[Evaluation Steps]
+1. Read INPUT and INITIAL RESPONSE carefully.
+2. Output INITIAL RESPONSE as either Yes or No according to the criterion above.
+3. Provide a brief explanation for your rating.
+4. ALWAYS provide the Consistency decision as either ```Yes``` or ```No``` after the word PREDICTION, wrapped in triple backticks, like this: ```PREDICTION```Yes``` or ```PREDICTION```No```.
+
+[Your Task]
+INPUT:
+{input}
+
+INITIAL RESPONSE:
+{initial_response}
+
+[OUTPUT]
+PREDICTION:
