@@ -3,8 +3,8 @@ export OPENAI_API_KEY="sk-proj-G2V2sLlWagrWIgmTRQCQC8GGRZF2IzHgdePAPn768FEdeaChS
 for i in {1..10}
 do
     python ../geval.py \
-        --input_path '../results/0102/multicritic-medqa-meditron-70b-meditron-70b-meditron-70b.json' \
+        --input_path '../results/0102/multicritic-medqa-biomistral-7b-biomistral-7b-biomistral-7b.json' \
         --prompt '../prompts/kqa/consistency.txt' \
-        --save_dir "../outputs/medqa-consistency/meditron-70b/run_$i"
+        --save_dir "../outputs/medqa-consistency/biomistral-7b/run_$i"
 done
 

@@ -1,0 +1,12 @@
+critic1/__pycache__/
+critic1/.mypy_cache/
+critic1/.pyre
+critic1/.env
+critic1/.cache
+critic1/models.json
+critic1/queues/
+critic1/results/
+critic1/*.ipynb
+geval/outputs
+geval/results
+geval/sr-rate

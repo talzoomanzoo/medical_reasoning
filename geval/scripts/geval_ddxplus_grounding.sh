@@ -3,7 +3,7 @@ export OPENAI_API_KEY="sk-proj-G2V2sLlWagrWIgmTRQCQC8GGRZF2IzHgdePAPn768FEdeaChS
 for i in {1..10}
 do
     python ../geval.py \
-        --input_path '../results/0102/multicritic-ddxplus-meditron-70b-meditron-70b-meditron-70b.json' \
+        --input_path '../results/0102/multicritic-ddxplus-biomistral-7b-biomistral-7b-biomistral-7b.json' \
         --prompt '../prompts/cds/grounding.txt' \
-        --save_dir "../outputs/ddxplus-grounding/medtiron-70b/run_$i"
+        --save_dir "../outputs/ddxplus-grounding/biomistral-7b/run_$i"
 done
