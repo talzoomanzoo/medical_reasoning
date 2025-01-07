@@ -16,14 +16,16 @@ _BenchEvalResult = TypeVar("_BenchEvalResult")
 
 type GenRMAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
     = Callable[
-        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int],
+        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int, bool],
         GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]
     ]
 
-def prompt_paths(benchmark: str) -> tuple[str, str, str, str, str]:
+def prompt_paths(benchmark: str, cheat: bool) -> tuple[str, str, str, str, str]:
     return (
         f"runbox/prompts/{benchmark}/main.json",
-        f"runbox/prompts/{benchmark}/genrm/critics",
+        f"runbox/prompts/{benchmark}/genrm/critics"\
+            if not cheat\
+            else f"runbox/prompts/{benchmark}/genrm/critics_cheat",
         f"runbox/prompts/{benchmark}/genrm/agg_critic.json",
         f"runbox/prompts/{benchmark}/genrm/refiner.json",
         f"runbox/prompts/{benchmark}/extractor.json"
@@ -31,17 +33,18 @@ def prompt_paths(benchmark: str) -> tuple[str, str, str, str, str]:
 
 def create_agent(
     benchmark: str,
-    AgentType: type[GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]],
+    AgentType: type[GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]]
 ) -> GenRMAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]: # type: ignore
-    paths = prompt_paths(benchmark)
-
     def f(
         main_config: ChatOpenAIConfig,
         critic_config: ChatOpenAIConfig,
         agg_critic_config: ChatOpenAIConfig,
         refiner_config: ChatOpenAIConfig,
-        n_iter: int
+        n_iter: int,
+        cheat: bool
     ) -> GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]:
+        paths = prompt_paths(benchmark, cheat)
+
         return AgentType( # type: ignore
             main_config=main_config,
             critic_config=critic_config,
@@ -52,7 +55,8 @@ def create_agent(
             agg_critic_prompt_path=paths[2],
             refiner_prompt_path=paths[3],
             add_extractor=create_4o_mini_extractor(paths[4]),
-            n_iter=n_iter
+            n_iter=n_iter,
+            cheat=cheat
         )
 
     return f
@@ -71,7 +75,8 @@ except:
 def prepare(
     benchmark: str,
     models: list[str],
-    n_iter: int
+    n_iter: int,
+    cheat: bool
 ) -> tuple[type[Benchmark], GenRMAgent]:
     benchmark_, create_agent_ = benchmark_configs[benchmark]
 
@@ -83,7 +88,8 @@ def prepare(
                 model_configs[models[1]],
                 model_configs[models[2]],
                 model_configs[models[3]],
-                n_iter
+                n_iter,
+                cheat
             )
         )
     else:
@@ -94,6 +100,7 @@ def prepare(
                 model_configs[models[1]],
                 model_configs[models[1]],
                 model_configs[models[2]],
-                n_iter
+                n_iter,
+                cheat
             )
         )

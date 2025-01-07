@@ -40,13 +40,15 @@ class MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         critic_prompts_dir_path: str,
         refiner_prompt_path: str,
         add_extractor: ExtractorAdder,
-        n_iter: int = 3
+        n_iter: int = 3,
+        cheat: bool = False
     ) -> None:
         super().__init__(
             main_config=main_config,
             main_prompt_path=main_prompt_path,
             add_extractor=add_extractor,
-            n_iter=n_iter
+            n_iter=n_iter,
+            cheat=cheat
         )
 
         self.critics = [
@@ -60,18 +62,26 @@ class MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
     def run_critic(
         self,
         input: _BenchInput,
-        initial_response: str
+        initial_response: str,
+        label: _BenchOutput | None = None
     ) -> tuple[MultiCriticSelfRefineCriticOutput, bool, float]:
         responses = []
         scores = []
         total_cost = 0
+
+        if self.cheat:
+            assert label is not None
 
         async def _arun_critics() -> list[tuple[str, float]]:
             return list(await asyncio.gather(*(
                 asyncio.create_task(
                     ainvoke(
                         critic,
-                        { **input, "initial_response": initial_response } # type: ignore
+                        {
+                            **input,
+                            "initial_response": initial_response,
+                            **({ "label": label } if self.cheat else {})
+                        } # type: ignore
                     )
                 )
                 for critic in self.critics

@@ -29,12 +29,14 @@ class SelfRefineBase(
         main_config: ChatOpenAIConfig,
         main_prompt_path: str,
         add_extractor: ExtractorAdder,
-        n_iter: int
+        n_iter: int,
+        cheat: bool
     ) -> None:
         self.main = load_chat_prompt_template_json(main_prompt_path)\
             | ChatOpenAI(**main_config)
         self.parser = add_extractor(self.parse)
         self.n_iter = n_iter
+        self.cheat = cheat
 
     def run_main(self, input: _BenchInput) -> tuple[str, _BenchOutput, float]:
         initial_response, initial_cost = invoke(self.main, input)
@@ -45,7 +47,8 @@ class SelfRefineBase(
     def run_critic(
         self,
         input: _BenchInput,
-        initial_response: str
+        initial_response: str,
+        label: _BenchOutput | None = None
     ) -> tuple[_CriticOutput, bool, float]:
         # critic_response, stop, critic_cost
         ...
@@ -60,7 +63,11 @@ class SelfRefineBase(
         # refiner_response, refiner_prediction, refiner_cost
         ...
 
-    def run(self, input: _BenchInput) -> dict:
+    def run(
+        self,
+        input: _BenchInput,
+        label: _BenchOutput | None = None
+    ) -> dict:
         initial_response, initial_prediction, initial_cost = self.run_main(input)
         output: dict = {
             "initial_response": initial_response,
@@ -76,7 +83,7 @@ class SelfRefineBase(
         for _ in range(self.n_iter):
             if not stop:
                 critic_response, stop, critic_cost\
-                    = self.run_critic(input, response)
+                    = self.run_critic(input, response, label)
             else:
                 critic_response = None
                 critic_cost = 0

@@ -16,14 +16,16 @@ _BenchEvalResult = TypeVar("_BenchEvalResult")
 
 type MultiCriticSelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
     = Callable[
-        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int],
+        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int, bool],
         MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]
     ]
 
-def mcsr_prompt_paths(benchmark: str) -> tuple[str, str, str, str]:
+def mcsr_prompt_paths(benchmark: str, cheat: bool) -> tuple[str, str, str, str]:
     return (
         f"runbox/prompts/{benchmark}/main.json",
-        f"runbox/prompts/{benchmark}/multi_critic_self_refine/critics",
+        f"runbox/prompts/{benchmark}/multi_critic_self_refine/critics"\
+            if not cheat\
+            else f"runbox/prompts/{benchmark}/multi_critic_self_refine/critics_cheat",
         f"runbox/prompts/{benchmark}/multi_critic_self_refine/refiner.json",
         f"runbox/prompts/{benchmark}/extractor.json"
     )
@@ -32,14 +34,15 @@ def create_sr_agent(
     benchmark: str,
     AgentType: type[MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]],
 ) -> MultiCriticSelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]: # type: ignore
-    paths = mcsr_prompt_paths(benchmark)
-
     def f(
         main_config: ChatOpenAIConfig,
         critic_config: ChatOpenAIConfig,
         refiner_config: ChatOpenAIConfig,
-        n_iter: int
+        n_iter: int,
+        cheat: bool
     ) -> MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]:
+        paths = mcsr_prompt_paths(benchmark, cheat)
+
         return AgentType( # type: ignore
             main_config=main_config,
             critic_config=critic_config,
@@ -67,7 +70,8 @@ except:
 def prepare(
     benchmark: str,
     models: list[str],
-    n_iter: int
+    n_iter: int,
+    cheat: bool
 ) -> tuple[type[Benchmark], MultiCriticSelfRefineAgent]:
     benchmark_, create_agent_ = benchmark_configs[benchmark]
 
@@ -77,6 +81,7 @@ def prepare(
             model_configs[models[0]],
             model_configs[models[1]],
             model_configs[models[2]],
-            n_iter
+            n_iter,
+            cheat
         )
     )

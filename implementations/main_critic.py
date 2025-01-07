@@ -17,6 +17,7 @@ from runbox.agents.self_refine_base import SelfRefineBase
 
 def run_refinement(
     input: Any,
+    label: Any,
     initial_response: str,
     initial_prediction: Any,
     initial_cost: float,
@@ -36,7 +37,7 @@ def run_refinement(
     for _ in range(agent.n_iter):
         if not stop:
             critic_response, stop, critic_cost\
-                = agent.run_critic(input, response)
+                = agent.run_critic(input, response, label)
         else:
             critic_response = None
             critic_cost = 0
@@ -86,6 +87,7 @@ def run_single_chunk(
             try:
                 output = run_refinement(
                     input,
+                    label,
                     initial_info["initial_response"], # type: ignore
                     initial_info["initial_prediction"], # type: ignore
                     initial_info["initial_cost"],

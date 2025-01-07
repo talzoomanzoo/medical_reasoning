@@ -31,13 +31,15 @@ class SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         critic_prompt_path: str,
         refiner_prompt_path: str,
         add_extractor: ExtractorAdder,
-        n_iter: int = 3
+        n_iter: int = 3,
+        cheat: bool = False
     ) -> None:
         super().__init__(
             main_config=main_config,
             main_prompt_path=main_prompt_path,
             add_extractor=add_extractor,
-            n_iter=n_iter
+            n_iter=n_iter,
+            cheat=cheat
         )
 
         self.critic = load_chat_prompt_template_json(critic_prompt_path)\
@@ -48,11 +50,19 @@ class SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
     def run_critic(
         self,
         input: _BenchInput,
-        initial_response: str
+        initial_response: str,
+        label: _BenchOutput | None = None
     ) -> tuple[SelfRefineCriticOutput, bool, float]:
+        if self.cheat:
+            assert label is not None
+
         critic_response, critic_cost = invoke(
             self.critic,
-            { **input, "initial_response": initial_response } # type: ignore
+            {
+                **input,
+                "initial_response": initial_response,
+                **({ "label": label } if self.cheat else {})
+            } # type: ignore
         )
         stop = _stop(critic_response)
         return { "response": critic_response }, stop, critic_cost

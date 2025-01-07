@@ -125,13 +125,15 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         n_iter: int = 3,
         critic_n: int = 1,
         critic_temp: float = 1.,
-        critic_top_logprobs: int = 20
+        critic_top_logprobs: int = 20,
+        cheat: bool = False
     ) -> None:
         super().__init__(
             main_config=main_config,
             main_prompt_path=main_prompt_path,
             add_extractor=add_extractor,
-            n_iter=n_iter
+            n_iter=n_iter,
+            cheat=cheat
         )
 
         self.critic = ChatOpenAI(
@@ -153,11 +155,15 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
     def run_critic(
         self,
         input: _BenchInput,
-        initial_response: str
+        initial_response: str,
+        label: _BenchOutput | None = None
     ) -> tuple[GenRMCriticOutput, bool, float]:
         responses: list[str] = []
         neg_scores: list[float] = []
         total_cost = 0
+
+        if self.cheat:
+            assert label is not None
 
         async def arun_critics() -> list[tuple[tuple[str, float], float]]:
             return list(await asyncio.gather(*(
@@ -165,7 +171,11 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
                     _run_single_critic(
                         self.critic,
                         critic_prompt,
-                        { **input, "initial_response": initial_response },
+                        {
+                            **input,
+                            "initial_response": initial_response,
+                            **({ "label": label } if self.cheat else {})
+                        },
                         self.agg_critic
                     )
                 )

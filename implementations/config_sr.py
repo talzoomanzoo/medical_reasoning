@@ -16,14 +16,16 @@ _BenchEvalResult = TypeVar("_BenchEvalResult")
 
 type SelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
     = Callable[
-        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int],
+        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int, bool],
         SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]
     ]
 
-def sr_prompt_paths(benchmark: str) -> tuple[str, str, str, str]:
+def sr_prompt_paths(benchmark: str, cheat: bool) -> tuple[str, str, str, str]:
     return (
         f"runbox/prompts/{benchmark}/main.json",
-        f"runbox/prompts/{benchmark}/self_refine/critic.json",
+        f"runbox/prompts/{benchmark}/self_refine/critic.json"\
+            if not cheat\
+            else f"runbox/prompts/{benchmark}/self_refine/critics_cheat",
         f"runbox/prompts/{benchmark}/self_refine/refiner.json",
         f"runbox/prompts/{benchmark}/extractor.json"
     )
@@ -32,14 +34,16 @@ def create_sr_agent(
     benchmark: str,
     AgentType: type[SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]],
 ) -> SelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]: # type: ignore
-    paths = sr_prompt_paths(benchmark)
 
     def f(
         main_config: ChatOpenAIConfig,
         critic_config: ChatOpenAIConfig,
         refiner_config: ChatOpenAIConfig,
-        n_iter: int
+        n_iter: int,
+        cheat: bool
     ) -> SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]:
+        paths = sr_prompt_paths(benchmark, cheat)
+
         return AgentType( # type: ignore
             main_config=main_config,
             critic_config=critic_config,
@@ -69,7 +73,8 @@ except:
 def prepare(
     benchmark: str,
     models: list[str],
-    n_iter: int
+    n_iter: int,
+    cheat: bool
 ) -> tuple[type[Benchmark], SelfRefineAgent]:
     benchmark_, create_agent_ = benchmark_configs[benchmark]
 
@@ -79,6 +84,7 @@ def prepare(
             model_configs[models[0]],
             model_configs[models[1]],
             model_configs[models[2]],
-            n_iter
+            n_iter,
+            cheat
         )
     )
