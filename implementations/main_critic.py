@@ -171,7 +171,7 @@ def parse_args() -> argparse.Namespace:
     return args
 
 def load_initial_infos(path: str) -> list[dict]:
-    return json.load(open(path, "r"))["generations"]
+    return [*map(lambda x: x["output"], json.load(open(path, "r"))["generations"])]
 
 def main() -> None:
     args = parse_args()
