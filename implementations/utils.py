@@ -56,7 +56,14 @@ def generate_chunks(slice: tuple[int, int], n_process: int) -> list[tuple[int, i
     return chunks
 
 def path_str(config: RunConfig) -> str:
-    return f"{config['method']}_{config['benchmark']}_{config['n_iter']}i_{'_'.join(config['models'])}"
+    cheat = config['cheat'] if 'cheat' in config else False
+    return "_".join([
+        config['method'],
+        config['benchmark'],
+        f"{config['n_iter']}i",
+        *(("cheat",) if cheat else ()),
+        *config['models']
+    ])
 
 def buffer_chunk_path(config: RunConfig, chunk: tuple[int, int]) -> Path:
     return BUFFER_PATH / Path(f"{path_str(config)}_{chunk}.json")
