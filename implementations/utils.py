@@ -28,13 +28,10 @@ _BenchInput = TypeVar("_BenchInput", bound=Mapping[str, Any])
 _BenchOutput = TypeVar("_BenchOutput", contravariant=True)
 _BenchEvalResult = TypeVar("_BenchEvalResult")
 _AgentRowResult = TypeVar("_AgentRowResult", covariant=True)
-type Prepare = Callable[
-    [str, list[str], int],
-    tuple[
-        type[Benchmark[_BenchInput, _BenchOutput, _BenchEvalResult]],
-        SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _AgentRowResult]
-    ]
-]
+_Benchmark = Benchmark[_BenchInput, _BenchOutput, _BenchEvalResult]
+_SupportsBenchmark = SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _AgentRowResult]
+_Settings = tuple[type[_Benchmark], _SupportsBenchmark]
+type Prepare = Callable[[str, list[str], int],_Settings]
 PREPARES: dict[str, Prepare] = {
     "sr": prepare_sr,
     "mcsr": prepare_mcsr,
@@ -87,3 +84,15 @@ def save_results(
 def load_queue(path: str) -> list[RunConfig]:
     queue: list[RunConfig] = json.load(open(path, "r"))
     return queue
+
+def load(
+    config: RunConfig,
+    chunk: tuple[int, int] | None = None
+) -> tuple[_Benchmark, _SupportsBenchmark]:
+    prepare = PREPARES[config["method"]]
+    _Benchmark_, agent = prepare(config["benchmark"], config["models"], config["n_iter"])
+    dataset = _Benchmark_( # type: ignore
+        split=config["bench_config"]["split"],
+        slice=(chunk if chunk is not None else config["bench_config"]["slice"])
+    )
+    return dataset, agent

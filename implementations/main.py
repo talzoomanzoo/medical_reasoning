@@ -18,10 +18,7 @@ def run_single_chunk(
     config: RunConfig,
     chunk: tuple[int, int]
 ) -> None:
-    prepare = PREPARES[config["method"]]
-
-    _Benchmark, agent = prepare(config["benchmark"], config["models"], config["n_iter"])
-    dataset = _Benchmark(split=config["bench_config"]["split"], slice=chunk) # type: ignore
+    dataset, agent = load(config, chunk)
 
     buffer_path = buffer_chunk_path(config, chunk)
     results: list[dict] = []\
@@ -34,17 +31,23 @@ def run_single_chunk(
             try:
                 output = agent.run(input)
                 result = agent.evaluate(dataset.evaluate_output, label, output)
+                cost = output["initial_cost"] + sum([
+                    i["critic_cost"] + i["refiner_cost"]
+                    for i in output["iteration"]
+                ])
             except:
                 output = {
                     "error": traceback.format_exc()
                 }
-                result = [False] * 4
+                cost = 0
+                result = [False] * config["n_iter"]
 
             results.append({
                 "input": input,
                 "label": label,
                 "output": output,
-                "result": result
+                "result": result,
+                "cost": cost
             })
             json.dump(results, open(buffer_path, "w"), indent=2)
         else:
@@ -98,7 +101,6 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
     return args
-
 
 def main() -> None:
     args = parse_args()
