@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from statistics import mean
 from functools import reduce
+import asyncio
 
 from langchain_core.outputs.chat_generation import ChatGeneration
 from langchain_core.prompts import ChatPromptTemplate
@@ -10,7 +11,13 @@ from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 
 from ..self_refine_base import SelfRefineBase
-from runbox.utils import ChatOpenAIConfig, load_chat_prompt_template_json, invoke, ExtractorAdder
+from runbox.utils import (
+    ChatOpenAIConfig,
+    load_chat_prompt_template_json,
+    invoke,
+    ExtractorAdder,
+    ainvoke
+)
 
 
 _BenchInput = TypeVar("_BenchInput", bound=Mapping[str, Any])
@@ -59,12 +66,19 @@ class MultiCriticSelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         scores = []
         total_cost = 0
 
-        for critic in self.critics:
-            critic_response, critic_cost = invoke(
-                critic,
-                { **input, "initial_response": initial_response } # type: ignore
-            )
+        async def _arun_critics() -> list[tuple[str, float]]:
+            return list(await asyncio.gather(*(
+                asyncio.create_task(
+                    ainvoke(
+                        critic,
+                        { **input, "initial_response": initial_response } # type: ignore
+                    )
+                )
+                for critic in self.critics
+            )))
+        results = asyncio.run(_arun_critics())
 
+        for critic_response, critic_cost in results:
             feedback = "\n".join(filter(
                 lambda x: '- GOOD:' in x or '- BAD:' in x,
                 critic_response.splitlines()

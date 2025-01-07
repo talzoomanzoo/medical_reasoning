@@ -160,17 +160,17 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         total_cost = 0
 
         async def arun_critics() -> list[tuple[tuple[str, float], float]]:
-            return await asyncio.gather(*map(
-                lambda critic_prompt: asyncio.create_task(
+            return list(await asyncio.gather(*(
+                asyncio.create_task(
                     _run_single_critic(
                         self.critic,
                         critic_prompt,
                         { **input, "initial_response": initial_response },
                         self.agg_critic
                     )
-                ),
-                self.critic_prompts
-            ))
+                )
+                for critic_prompt in self.critic_prompts
+            )))
         results = asyncio.run(arun_critics())
 
         for response, critic_cost in results:
