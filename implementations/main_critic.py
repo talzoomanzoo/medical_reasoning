@@ -82,7 +82,7 @@ def run_single_chunk(
         else json.load(open(buffer_path, "r"))
     n_pass = len(results)
 
-    for (input, label), initial_info in zip(dataset, initial_infos):
+    for (input, label), initial_info in zip(dataset, initial_infos[chunk[0]:chunk[1]]):
         if n_pass == 0:
             try:
                 output = run_refinement(
