@@ -1,4 +1,4 @@
-from typing import Callable, TypeVar, Mapping, Any
+from typing import Callable, TypeVar, Mapping, Any, TypedDict
 import os
 from pathlib import Path
 from statistics import mean
@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 import numpy as np
 
-from runbox.benchmarks import SupportsBenchmark
+from ..self_refine_base import SelfRefineBase
 from runbox.utils import ChatOpenAIConfig, load_chat_prompt_template_json, invoke, ExtractorAdder, track_cost
 
 
@@ -18,7 +18,9 @@ _BenchInput = TypeVar("_BenchInput", bound=Mapping[str, Any])
 _BenchOutput = TypeVar("_BenchOutput")
 _BenchEvalResult = TypeVar("_BenchEvalResult")
 
-type _GenRMRowResult = list[_BenchEvalResult]
+class GenRMCriticOutput(TypedDict):
+    responses: list[str]
+    neg_scores: list[float]
 
 
 INF = float('-inf')
@@ -98,7 +100,7 @@ def _run_single_critic(
 
 
 class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
-    SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _GenRMRowResult]
+    SelfRefineBase[_BenchInput, _BenchOutput, _BenchEvalResult, GenRMCriticOutput]
 ):
     def __init__(
         self,
@@ -116,8 +118,13 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         critic_temp: float = 1.,
         critic_top_logprobs: int = 20
     ) -> None:
-        self.main = load_chat_prompt_template_json(main_prompt_path)\
-            | ChatOpenAI(**main_config)
+        super().__init__(
+            main_config=main_config,
+            main_prompt_path=main_prompt_path,
+            add_extractor=add_extractor,
+            n_iter=n_iter
+        )
+
         self.critic = ChatOpenAI(
             **critic_config,
             n=critic_n,
@@ -133,10 +140,12 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
             | ChatOpenAI(**agg_critic_config)
         self.refiner = load_chat_prompt_template_json(refiner_prompt_path)\
             | ChatOpenAI(**refiner_config)
-        self.parser = add_extractor(self.parse)
-        self.n_iter = n_iter
 
-    def _run_critic(self, input: _BenchInput, initial_response: str) -> tuple[list[str], str, float, list[float], bool]:
+    def run_critic(
+        self,
+        input: _BenchInput,
+        initial_response: str
+    ) -> tuple[GenRMCriticOutput, bool, float]:
         responses: list[str] = []
         neg_scores: list[float] = []
         total_cost = 0
@@ -158,68 +167,28 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
 
         stop = reduce(lambda a, b: a and b, map(lambda x: x >= 0.5, neg_scores))
 
-        return responses, agg_response, total_cost, neg_scores, stop
+        return (
+            {
+                "responses": responses,
+                "neg_scores": neg_scores
+            },
+            stop,
+            total_cost
+        )
 
-    def run(self, input: _BenchInput) -> dict:
-        initial_response, initial_cost = invoke(self.main, input)
-        output: dict = {
-            "initial_response": initial_response,
-            "initial_prediction": self.parser(initial_response),
-            "initial_cost": initial_cost,
-            "iteration": []
-        }
-
-        stop = False
-        prediction = output["initial_prediction"]
-        for _ in range(self.n_iter):
-            if not stop:
-                critic_responses, critic_response, critic_cost, neg_scores, stop\
-                    = self._run_critic(input, initial_response)
-            else:
-                critic_responses = []
-                critic_response = "-"
-                critic_cost = 0
-                neg_scores = []
-
-            if not stop:
-                refiner_response, refiner_cost = invoke(
-                    self.refiner,
-                    { **input, "initial_response": initial_response, "critic_response": critic_response } # type: ignore
-                )
-                refiner_prediction = self.parser(refiner_response)
-                output["iteration"].append({ # type: ignore
-                    "critic_details": critic_responses,
-                    # "critic_response": critic_response,
-                    "neg_scores": neg_scores,
-                    "refiner_response": refiner_response,
-                    "refiner_prediction": refiner_prediction,
-                    "critic_cost": critic_cost,
-                    "refiner_cost": refiner_cost
-                })
-                initial_response = refiner_response
-                prediction = refiner_prediction
-            else:
-                refiner_response = "-"
-                refiner_cost = 0
-                output["iteration"].append({ # type: ignore
-                    "critic_details": critic_responses,
-                    # "critic_response": critic_response,
-                    "neg_scores": neg_scores,
-                    "refiner_response": refiner_response,
-                    "refiner_prediction": prediction,
-                    "critic_cost": critic_cost,
-                    "refiner_cost": refiner_cost
-                })
-
-        return output
-
-    def evaluate(
+    def run_refiner(
         self,
-        evaluator: Callable[[_BenchOutput, _BenchOutput | None], _BenchEvalResult],
-        label: _BenchOutput,
-        output: dict
-    ) -> _GenRMRowResult:
-        predictions = [output["initial_prediction"]]
-        for o in output["iteration"]:
-            predictions.append(o["refiner_prediction"])
-        return [evaluator(label, prediction) for prediction in predictions]
+        input: _BenchInput,
+        initial_response: str,
+        critic_response: GenRMCriticOutput
+    ) -> tuple[str, _BenchOutput, float]:
+        refiner_response, refiner_cost = invoke(
+            self.refiner,
+            {
+                **input,
+                "initial_response": initial_response,
+                "critic_response": "\n\n".join(critic_response["responses"])
+            } # type: ignore
+        )
+        refiner_prediction = self.parser(refiner_response)
+        return refiner_response, refiner_prediction, refiner_cost
