@@ -23,7 +23,7 @@ def _convert_answer(row: dict, value: int | None) -> str:
     if row["data_type"] == "B":
         return "N" if value == 0 else "Y"
     elif row["data_type"] == "C":
-        return f"{value} (possible values: {row['possible-values']})"
+        return f"{value} (possible values: [{row['possible-values'][0]}-{row['possible-values'][-1]}])"
     else:
         raise Exception()
 
