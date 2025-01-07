@@ -11,7 +11,13 @@ from langchain_core.runnables import Runnable
 import numpy as np
 
 from ..self_refine_base import SelfRefineBase
-from runbox.utils import ChatOpenAIConfig, load_chat_prompt_template_json, invoke, ExtractorAdder, track_cost
+from runbox.utils import (
+    ChatOpenAIConfig,
+    load_chat_prompt_template_json,
+    invoke,
+    ExtractorAdder,
+    track_cost
+)
 
 
 _BenchInput = TypeVar("_BenchInput", bound=Mapping[str, Any])
