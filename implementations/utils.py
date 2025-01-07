@@ -35,7 +35,7 @@ type Prepare = Callable[
         SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _AgentRowResult]
     ]
 ]
-PREPARES: dict[str, Prepare] = { # type: ignore
+PREPARES: dict[str, Prepare] = {
     "sr": prepare_sr,
     "mcsr": prepare_mcsr,
     "genrm": prepare_genrm

@@ -71,7 +71,6 @@ except:
 def prepare(
     benchmark: str,
     models: list[str],
-    refiner: str,
     n_iter: int
 ) -> tuple[type[Benchmark], GenRMAgent]:
     benchmark_, create_agent_ = benchmark_configs[benchmark]
