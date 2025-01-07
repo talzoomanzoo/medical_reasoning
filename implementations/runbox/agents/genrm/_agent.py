@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from statistics import mean
 from functools import reduce
+import asyncio
 
 from langchain_core.outputs.chat_generation import ChatGeneration
 from langchain_core.prompts import ChatPromptTemplate
@@ -16,7 +17,8 @@ from runbox.utils import (
     load_chat_prompt_template_json,
     invoke,
     ExtractorAdder,
-    track_cost
+    track_cost,
+    atrack_cost
 )
 
 
@@ -74,15 +76,15 @@ def _calculate_neg(response: ChatGeneration) -> float | None:
                 continue
     return None
 
-@track_cost
-def _run_single_critic(
+@atrack_cost
+async def _run_single_critic(
     model: ChatOpenAI,
     prompt: ChatPromptTemplate,
     params: dict,
     aggregator: Runnable
 ) -> tuple[str, float]:
     input = prompt.invoke(params)
-    responses = model._generate(input) # type: ignore
+    responses = await model._agenerate(input) # type: ignore
 
     feedback_lines = sum(
         [[*filter(
@@ -91,10 +93,11 @@ def _run_single_critic(
         )] for gen in responses.generations],
         []
     )
-    feedback = aggregator.invoke({
+
+    feedback = (await aggregator.ainvoke({
         **params,
         "feedback": "\n".join(feedback_lines)
-    }).content # type: ignore
+    })).content # type: ignore
 
     negs = [*filter(
         lambda x: x is not None,
@@ -156,15 +159,22 @@ class GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult](
         neg_scores: list[float] = []
         total_cost = 0
 
-        for critic_prompt in self.critic_prompts:
-            response, critic_cost = _run_single_critic(
-                self.critic,
-                critic_prompt,
-                { **input, "initial_response": initial_response },
-                self.agg_critic
-            )
-            feedback, neg_score = response
+        async def arun_critics() -> list[tuple[tuple[str, float], float]]:
+            return await asyncio.gather(*map(
+                lambda critic_prompt: asyncio.create_task(
+                    _run_single_critic(
+                        self.critic,
+                        critic_prompt,
+                        { **input, "initial_response": initial_response },
+                        self.agg_critic
+                    )
+                ),
+                self.critic_prompts
+            ))
+        results = asyncio.run(arun_critics())
 
+        for response, critic_cost in results:
+            feedback, neg_score = response
             responses.append(feedback)
             neg_scores.append(neg_score)
             total_cost += critic_cost

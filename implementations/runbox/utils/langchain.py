@@ -29,7 +29,7 @@ def track_cost(f: Callable[_P, _T]) -> Callable[_P, tuple[_T, float]]:
             return (result, cb.total_cost)
     return f_tracking
 
-async def atrack_cost(f: Callable[_P, _AT]) -> Callable[_P, tuple[_AT, float]]:
+def atrack_cost(f: Callable[_P, _AT]) -> Callable[_P, tuple[_AT, float]]:
     @wraps(f)
     async def f_tracking(*args: _P.args, **kwargs: _P.kwargs) -> tuple[_AT, float]:
         with get_openai_callback() as cb:
