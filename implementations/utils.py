@@ -53,8 +53,11 @@ def generate_chunks(slice: tuple[int, int], n_process: int) -> list[tuple[int, i
 
     return chunks
 
+def path_str(config: RunConfig) -> str:
+    return f"{config['method']}_{config['benchmark']}_{config['n_iter']}i_{'_'.join(config['models'])}"
+
 def buffer_chunk_path(config: RunConfig, chunk: tuple[int, int]) -> Path:
-    return BUFFER_PATH / Path(f"{config['method']}_{config['n_iter']}_{config['benchmark']}_{'_'.join(config['models'])}_{chunk}.json")
+    return BUFFER_PATH / Path(f"{path_str(config)}_{chunk}.json")
 
 def calc_full_score(
     config: RunConfig,
@@ -68,7 +71,7 @@ def save_path(
     config: RunConfig,
     result_dir_path: Path
 ) -> Path:
-    file_name = f"{config['method']}_{config['n_iter']}_{config['benchmark']}_{'_'.join(config['models'])}.json"
+    file_name = f"{path_str(config)}.json"
     file_path = result_dir_path / Path(file_name)
     return file_path
 
