@@ -78,12 +78,14 @@ def run_single_config(
 
     full: list[dict] = sum([_load(chunk) for chunk in chunks], [])
     full_score = calc_full_score(config, [*map(lambda x: x["result"], full)])
+    total_cost = sum(map(lambda x: x["cost"], full))
 
     save_results(
         config,
         result_dir_path,
         {
             "final_score": full_score,
+            "total_cost": total_cost,
             "generations": full
         }
     )
