@@ -22,7 +22,7 @@ type SelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
 
 def sr_prompt_paths(benchmark: str) -> tuple[str, str, str, str]:
     return (
-        f"runbox/prompts/{benchmark}/self_refine/main.json",
+        f"runbox/prompts/{benchmark}/main.json",
         f"runbox/prompts/{benchmark}/self_refine/critic.json",
         f"runbox/prompts/{benchmark}/self_refine/refiner.json",
         f"runbox/prompts/{benchmark}/extractor.json"

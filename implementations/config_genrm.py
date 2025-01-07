@@ -22,7 +22,7 @@ type GenRMAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
 
 def prompt_paths(benchmark: str) -> tuple[str, str, str, str, str]:
     return (
-        f"runbox/prompts/{benchmark}/genrm/main.json",
+        f"runbox/prompts/{benchmark}/main.json",
         f"runbox/prompts/{benchmark}/genrm/critics",
         f"runbox/prompts/{benchmark}/genrm/agg_critic.json",
         f"runbox/prompts/{benchmark}/genrm/refiner.json",

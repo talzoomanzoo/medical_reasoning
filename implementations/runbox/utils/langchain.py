@@ -5,7 +5,7 @@ from pathlib import Path
 
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 from langchain_community.callbacks import get_openai_callback # type: ignore
 
 
@@ -13,8 +13,22 @@ ChatOpenAIConfig = dict
 
 
 def load_chat_prompt_template_json(json_path: str | Path) -> ChatPromptTemplate:
-    messages = [*map(tuple, json.load(open(json_path, "r")))] # type: ignore
-    return ChatPromptTemplate.from_messages(messages)
+    json_ = json.load(open(json_path, "r"))
+
+    example_prompt = ChatPromptTemplate.from_messages([
+        ("user", json_['input_template']),
+        ("assistant", "{output}")
+    ])
+    few_shot_prompt = FewShotChatMessagePromptTemplate(
+        example_prompt=example_prompt,
+        examples=json_['examples']
+    )
+
+    return ChatPromptTemplate.from_messages([
+        ("system", json_['system_prompt']),
+        few_shot_prompt,
+        ("user", json_['input_template'])
+    ])
 
 
 _P = ParamSpec("_P")

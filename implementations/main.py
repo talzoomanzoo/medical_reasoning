@@ -84,6 +84,7 @@ def run_single_config(
         config,
         result_dir_path,
         {
+            "config": config,
             "final_score": full_score,
             "total_cost": total_cost,
             "generations": full

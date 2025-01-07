@@ -22,7 +22,7 @@ type MultiCriticSelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResu
 
 def mcsr_prompt_paths(benchmark: str) -> tuple[str, str, str, str]:
     return (
-        f"runbox/prompts/{benchmark}/multi_critic_self_refine/main.json",
+        f"runbox/prompts/{benchmark}/main.json",
         f"runbox/prompts/{benchmark}/multi_critic_self_refine/critics",
         f"runbox/prompts/{benchmark}/multi_critic_self_refine/refiner.json",
         f"runbox/prompts/{benchmark}/extractor.json"
