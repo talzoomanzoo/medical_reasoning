@@ -16,7 +16,7 @@ _BenchEvalResult = TypeVar("_BenchEvalResult")
 
 type SelfRefineAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
     = Callable[
-        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig],
+        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int],
         SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]
     ]
 
@@ -37,7 +37,8 @@ def create_sr_agent(
     def f(
         main_config: ChatOpenAIConfig,
         critic_config: ChatOpenAIConfig,
-        refiner_config: ChatOpenAIConfig
+        refiner_config: ChatOpenAIConfig,
+        n_iter: int
     ) -> SelfRefineAgent[_BenchInput, _BenchOutput, _BenchEvalResult]:
         return AgentType( # type: ignore
             main_config=main_config,
@@ -47,7 +48,7 @@ def create_sr_agent(
             critic_prompt_path=paths[1],
             refiner_prompt_path=paths[2],
             add_extractor=create_4o_mini_extractor(paths[3]),
-            n_iter=3
+            n_iter=n_iter
         )
 
     return f
@@ -67,17 +68,17 @@ except:
     raise Exception("model config file required")
 def prepare(
     benchmark: str,
-    main: str,
-    critic: str,
-    refiner: str
+    models: list[str],
+    n_iter: int
 ) -> tuple[type[Benchmark], SelfRefineAgent]:
-    benchmark_, create_agent = benchmark_configs[benchmark]
+    benchmark_, create_agent_ = benchmark_configs[benchmark]
 
     return (
         benchmark_,
-        create_agent(
-            model_configs[main],
-            model_configs[critic],
-            model_configs[refiner]
+        create_agent_(
+            model_configs[models[0]],
+            model_configs[models[1]],
+            model_configs[models[2]],
+            n_iter
         )
     )

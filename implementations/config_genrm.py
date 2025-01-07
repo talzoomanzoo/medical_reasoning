@@ -16,7 +16,7 @@ _BenchEvalResult = TypeVar("_BenchEvalResult")
 
 type GenRMAgentCreator[_BenchInput, _BenchOutput, _BenchEvalResult]\
     = Callable[
-        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig],
+        [ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, ChatOpenAIConfig, int],
         GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]
     ]
 
@@ -39,7 +39,8 @@ def create_agent(
         main_config: ChatOpenAIConfig,
         critic_config: ChatOpenAIConfig,
         agg_critic_config: ChatOpenAIConfig,
-        refiner_config: ChatOpenAIConfig
+        refiner_config: ChatOpenAIConfig,
+        n_iter: int
     ) -> GenRMAgent[_BenchInput, _BenchOutput, _BenchEvalResult]:
         return AgentType( # type: ignore
             main_config=main_config,
@@ -51,7 +52,7 @@ def create_agent(
             agg_critic_prompt_path=paths[2],
             refiner_prompt_path=paths[3],
             add_extractor=create_4o_mini_extractor(paths[4]),
-            n_iter=2
+            n_iter=n_iter
         )
 
     return f
@@ -69,19 +70,31 @@ except:
     raise Exception("model config file required")
 def prepare(
     benchmark: str,
-    main: str,
-    critic: str,
-    # agg_critic: str,
-    refiner: str
+    models: list[str],
+    refiner: str,
+    n_iter: int
 ) -> tuple[type[Benchmark], GenRMAgent]:
-    benchmark_, create_agent = benchmark_configs[benchmark]
+    benchmark_, create_agent_ = benchmark_configs[benchmark]
 
-    return (
-        benchmark_,
-        create_agent(
-            model_configs[main],
-            model_configs[critic],
-            model_configs['gpt-4o-mini'],
-            model_configs[refiner]
+    if len(models) == 4:
+        return (
+            benchmark_,
+            create_agent_(
+                model_configs[models[0]],
+                model_configs[models[1]],
+                model_configs[models[2]],
+                model_configs[models[3]],
+                n_iter
+            )
         )
-    )
+    else:
+        return (
+            benchmark_,
+            create_agent_(
+                model_configs[models[0]],
+                model_configs[models[1]],
+                model_configs[models[1]],
+                model_configs[models[2]],
+                n_iter
+            )
+        )

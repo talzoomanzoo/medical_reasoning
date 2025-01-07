@@ -1,51 +1,26 @@
 from typing import TypedDict, Any
+from enum import Enum
 import json
 import os
 import argparse
 from multiprocessing import Queue, Process
 from pathlib import Path
+import traceback
 
 from tqdm import tqdm
 from dotenv import load_dotenv # type: ignore
 
-from config import prepare
+from utils import *
 
-
-BUFFER_PATH = Path(".cache/buffer")
-
-
-class BenchConfig(TypedDict):
-    split: str
-    slice: tuple[int, int]
-
-class RunConfig(TypedDict):
-    benchmark: str
-    bench_config: BenchConfig
-    models: tuple[str, str, str]
-
-def generate_chunks(slice: tuple[int, int], n_process: int) -> list[tuple[int, int]]:
-    r = (slice[1] - slice[0]) // n_process
-
-    chunks = [
-        (
-            slice[0] + i*r,
-            slice[0] + (i+1)*r
-        )
-        for i in range(n_process - 1)
-    ]
-    chunks.append((slice[0] + (n_process-1) * r, slice[1]))
-
-    return chunks
-
-def buffer_chunk_path(config: RunConfig, chunk: tuple[int, int]) -> Path:
-    return BUFFER_PATH / Path(f"{config['benchmark']}-{'-'.join(config['models'])}-{chunk}.json")
 
 def run_single_chunk(
     queue: Queue,
     config: RunConfig,
     chunk: tuple[int, int]
 ) -> None:
-    _Benchmark, agent = prepare(config["benchmark"], *config["models"])
+    prepare = PREPARES[config["method"]]
+
+    _Benchmark, agent = prepare(config["benchmark"], config["models"], config["n_iter"])
     dataset = _Benchmark(split=config["bench_config"]["split"], slice=chunk) # type: ignore
 
     buffer_path = buffer_chunk_path(config, chunk)
@@ -59,9 +34,9 @@ def run_single_chunk(
             try:
                 output = agent.run(input)
                 result = agent.evaluate(dataset.evaluate_output, label, output)
-            except Exception as e:
+            except:
                 output = {
-                    "error": str(e)
+                    "error": traceback.format_exc()
                 }
                 result = [False] * 4
 
@@ -77,29 +52,6 @@ def run_single_chunk(
 
         queue.put(None, block=False)
 
-def calc_full_score(
-    config: RunConfig,
-    full: list[dict]
-) -> Any:
-    _, agent = prepare(config["benchmark"], *config["models"])
-    return agent.calc_full_score(full)
-
-def save_path(
-    config: RunConfig,
-    result_dir_path: Path
-) -> Path:
-    file_name = f"{config['benchmark']}-{'-'.join(config['models'])}.json"
-    file_path = result_dir_path / Path(file_name)
-    return file_path
-
-def save_results(
-    config: RunConfig,
-    result_dir_path: Path,
-    result: dict
-) -> None:
-    file_path = save_path(config, result_dir_path)
-    with open(file_path, "w") as f:
-        json.dump(result, f, indent=2)
 
 def run_single_config(
     config: RunConfig,
@@ -136,9 +88,6 @@ def run_single_config(
     for chunk in chunks:
         os.remove(buffer_chunk_path(config, chunk))
 
-def load_queue(path: str) -> list[RunConfig]:
-    queue: list[RunConfig] = json.load(open(path, "r"))
-    return queue
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -149,6 +98,7 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
     return args
+
 
 def main() -> None:
     args = parse_args()
