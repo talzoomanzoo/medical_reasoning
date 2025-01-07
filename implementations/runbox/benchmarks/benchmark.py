@@ -63,6 +63,9 @@ class Benchmark(
         for row in self._dataset:
             yield self.preprocess_row(row) # type: ignore
 
+    def __getitem__(self, i: int) -> _PreprocessedRow:
+        return self.preprocess_row(self._dataset[i])
+
     @abstractmethod
     def preprocess_row(self, row: dict) -> _PreprocessedRow:
         ...

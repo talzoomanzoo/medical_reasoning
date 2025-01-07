@@ -3,7 +3,8 @@ from enum import Enum
 from pathlib import Path
 import json
 
-from runbox.benchmarks import Benchmark, SupportsBenchmark
+from runbox.benchmarks import Benchmark
+from runbox.agents.self_refine_base import SelfRefineBase
 from config_genrm import prepare as prepare_genrm
 from config_mcsr import prepare as prepare_mcsr
 from config_sr import prepare as prepare_sr
@@ -27,11 +28,11 @@ class RunConfig(TypedDict):
 _BenchInput = TypeVar("_BenchInput", bound=Mapping[str, Any])
 _BenchOutput = TypeVar("_BenchOutput", contravariant=True)
 _BenchEvalResult = TypeVar("_BenchEvalResult")
-_AgentRowResult = TypeVar("_AgentRowResult", covariant=True)
-_Benchmark = Benchmark[_BenchInput, _BenchOutput, _BenchEvalResult]
-_SupportsBenchmark = SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _AgentRowResult]
-_Settings = tuple[type[_Benchmark], _SupportsBenchmark]
-type Prepare = Callable[[str, list[str], int],_Settings]
+_CriticOutput = TypeVar("_CriticOutput")
+type _Benchmark = Benchmark[_BenchInput, _BenchOutput, _BenchEvalResult]
+type _SelfRefineBase = SelfRefineBase[_BenchInput, _BenchOutput, _BenchEvalResult, _CriticOutput]
+type _Settings = tuple[type[_Benchmark], _SelfRefineBase]
+type Prepare = Callable[[str, list[str], int], _Settings]
 PREPARES: dict[str, Prepare] = {
     "sr": prepare_sr,
     "mcsr": prepare_mcsr,
@@ -91,7 +92,7 @@ def load_queue(path: str) -> list[RunConfig]:
 def load(
     config: RunConfig,
     chunk: tuple[int, int] | None = None
-) -> tuple[_Benchmark, _SupportsBenchmark]:
+) -> tuple[_Benchmark, _SelfRefineBase]:
     prepare = PREPARES[config["method"]]
     _Benchmark_, agent = prepare(config["benchmark"], config["models"], config["n_iter"])
     dataset = _Benchmark_( # type: ignore
