@@ -29,7 +29,7 @@ def run_single_chunk(
     for input, label in dataset:
         if n_pass == 0:
             try:
-                output = agent.run(input)
+                output = agent.run(input, label)
                 result = agent.evaluate(dataset.evaluate_output, label, output)
                 cost = output["initial_cost"] + sum([
                     i["critic_cost"] + i["refiner_cost"]
