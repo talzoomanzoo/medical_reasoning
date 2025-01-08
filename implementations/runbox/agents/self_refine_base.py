@@ -14,11 +14,6 @@ _CriticOutput = TypeVar("_CriticOutput")
 
 type _SelfRefineRowResult = list[_BenchEvalResult]
 
-def _stop(response: str) -> bool:
-    response_ = response.lower()
-    return "`stop`" in response_\
-        or "'stop'" in response_\
-        or '"stop"' in response_
 
 class SelfRefineBase(
     SupportsBenchmark[_BenchInput, _BenchOutput, _BenchEvalResult, _SelfRefineRowResult],
