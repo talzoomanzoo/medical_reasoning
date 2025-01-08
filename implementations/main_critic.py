@@ -103,7 +103,7 @@ def run_single_chunk(
                     "error": traceback.format_exc()
                 }
                 cost = 0
-                result = [False] * config["n_iter"]
+                result = [False] * (1 + config["n_iter"])
 
             results.append({
                 "input": input,
