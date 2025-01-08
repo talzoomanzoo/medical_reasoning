@@ -9,7 +9,7 @@ implementations/queues
 implementations/results
 implementations/*.ipynb
 implementations/*.rb
-
+*sj/
 geval/outputs
 geval/results
 geval/sr-rate
