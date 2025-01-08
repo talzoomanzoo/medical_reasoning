@@ -52,7 +52,8 @@ def create_sr_agent(
             critic_prompt_path=paths[1],
             refiner_prompt_path=paths[2],
             add_extractor=create_4o_mini_extractor(paths[3]),
-            n_iter=n_iter
+            n_iter=n_iter,
+            cheat=cheat
         )
 
     return f
