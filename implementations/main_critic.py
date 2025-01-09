@@ -161,7 +161,7 @@ def run_single_config(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--initial_response_path", type=str)
+    parser.add_argument("-i", "--initial_response_queue_path", type=str)
     parser.add_argument("-q", "--queue_path", type=str)
     parser.add_argument("-n", "--n_process", type=int)
     parser.add_argument("-r", "--result_dir_path", type=str)
@@ -173,9 +173,12 @@ def parse_args() -> argparse.Namespace:
 def load_initial_infos(path: str) -> list[dict]:
     return [*map(lambda x: x["output"], json.load(open(path, "r"))["generations"])]
 
+def load_initial_queue(path: str) -> list[str]:
+    return json.load(open(path, "r"))
+
 def main() -> None:
     args = parse_args()
-    initial_response_path: str = args.initial_response_path
+    initial_response_queue_path: str = args.initial_response_queue_path
     queue_path: str = args.queue_path
     n_process: int = args.n_process
     result_dir_path = Path(args.result_dir_path)
@@ -184,9 +187,12 @@ def main() -> None:
     BUFFER_PATH.mkdir(parents=True, exist_ok=True)
 
     queue = load_queue(queue_path)
-    initial_infos = load_initial_infos(initial_response_path)
+    initial_queue = load_initial_queue(initial_response_queue_path)
 
-    for config in tqdm(queue, desc="configs"):
+    for config, initial_infos in zip(
+        tqdm(queue, desc="configs"),
+        map(load_initial_infos, initial_queue)
+    ):
         if not save_path(config, result_dir_path).exists():
             run_single_config(config, initial_infos, n_process, result_dir_path)
 
