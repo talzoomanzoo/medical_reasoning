@@ -54,8 +54,8 @@ fp16:
 tf32: false
 
 save_strategy: steps
-save_steps: 100
-eval_steps: 200
+save_steps: 50
+eval_steps: 50
 
 gradient_checkpointing: false
 early_stopping_patience:
