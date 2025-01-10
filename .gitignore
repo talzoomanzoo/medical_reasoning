@@ -13,3 +13,6 @@ implementations/*.rb
 geval/outputs
 geval/results
 geval/sr-rate
+axolotl/last_run_prepared
+axolotl/outputs
+axolotl/wandb
