@@ -40,9 +40,28 @@ if __name__ == "__main__":
         first_model_name = config["FEEDBACK_MODEL_NAME_OR_PATH"].split("/")[-1]
         second_model_name = model_last_name
         save_dir = f"generation_results/{first_model_name}-{second_model_name}"
+        command = ["script/vllm_multi_inference.sh"]
+        command.extend(
+            [
+                config["FEEDBACK_CUDA_DEVICES"],  
+                config["FEEDBACK_MODEL_NAME_OR_PATH"], 
+                str(config["FEEDBACK_PORT"]), 
+            ]
+        )
     else:
         save_dir = f"generation_results/{model_last_name}-single-model"
-
+        command = ['script/vllm_single_inference.sh']
+    command.extend(
+        [
+            config["GENERATE_CUDA_DEVICES"],  
+            config["GENERATE_MODEL_NAME_OR_PATH"],
+            str(config["GENERATE_PORT"]),
+            str(config["TENSOR_PARALLEL_SIZE"]),
+            save_dir,
+            config["prompt_key"],
+            config["use_feedback"],
+        ]
+    )
     # Add execution details to the configuration
     config["execution_details"] = {"timestamp_kst": current_kst(), "user": getpass.getuser(), "cwd": os.getcwd()}
 
@@ -53,28 +72,7 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
     write_yaml(config, output_config_path)
 
-    # Check if two servers are required
-    command = ["script/vllm_inference.sh", use_two_servers]
-    if use_two_servers == "yes":
-        command.extend(
-            [
-                config["FEEDBACK_CUDA_DEVICES"],  # 2
-                config["FEEDBACK_MODEL_NAME_OR_PATH"],  # 3
-                str(config["FEEDBACK_PORT"]),  # 4
-            ]
-        )
 
-    command.extend(
-        [
-            config["GENERATE_CUDA_DEVICES"],  # 5
-            config["GENERATE_MODEL_NAME_OR_PATH"],
-            str(config["GENERATE_PORT"]),
-            str(config["TENSOR_PARALLEL_SIZE"]),
-            save_dir,
-            config["prompt_key"],
-            config["use_feedback"], #11
-        ]
-    )
     for i, c in enumerate(command):
         print(i, c)
 
