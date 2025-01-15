@@ -5,8 +5,7 @@ function start_two_servers() {
     touch ${FEEDBACK_SERVER_LOG_FILE}
     touch ${GENERATE_SERVER_LOG_FILE}
     echo "Starting feedback server..."
-    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_FEEDBACK python -m vllm.entrypoints.openai.api_server \
-    --model $MODEL_PATH_FEEDBACK \
+    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_FEEDBACK vllm serve $MODEL_PATH_FEEDBACK \
     --tensor-parallel-size $TENSOR_SIZE_TWO \
     --seed 42 \
     --port $PORT_FEEDBACK > ${FEEDBACK_SERVER_LOG_FILE} 2>&1 &
@@ -15,8 +14,7 @@ function start_two_servers() {
 
     # Generate Server
     echo "Starting generate server..."
-    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_GENERATE python -m vllm.entrypoints.openai.api_server \
-    --model $MODEL_PATH_GENERATE \
+    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_GENERATE vllm serve $MODEL_PATH_GENERATE \
     --tensor-parallel-size $TENSOR_SIZE_TWO \
     --seed 42 \
     --port $PORT_GENERATE > ${GENERATE_SERVER_LOG_FILE} 2>&1 &
@@ -95,6 +93,7 @@ echo "CUDA_DEVICES_GENERATE: ${CUDA_DEVICES_GENERATE}"
 echo "MODEL_PATH_GENERATE: ${MODEL_PATH_GENERATE}"
 echo "PORT_GENERATE: ${PORT_GENERATE}"
 echo "TENSOR_SIZE_TWO: ${TENSOR_SIZE_TWO}"
+echo "API_KEY: ${API_KEY}"
 echo "PROMPT: ${PROMPT}"
 echo "USE_FB: ${USE_FB}"
 

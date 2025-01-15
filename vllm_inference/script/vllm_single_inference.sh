@@ -2,9 +2,7 @@
 
 function start_server(){
     echo "Starting server..."
-    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_SINGLE python -m vllm.entrypoints.openai.api_server \
-    --model $MODEL_PATH_SINGLE \
-    --trust-remote-code \
+    CUDA_VISIBLE_DEVICES=$CUDA_DEVICES_SINGLE vllm serve $MODEL_PATH_SINGLE \
     --tensor-parallel-size $TENSOR_SIZE_SINGLE \
     --seed 42 \
     --port $PORT_SINGLE > ${SERVER_LOG_FILE} 2>&1 &
@@ -48,6 +46,9 @@ function handle_sigint() {
 
     exit 0
 }
+
+
+
 
 LOG_DIR="logs"
 trap handle_sigint SIGINT
